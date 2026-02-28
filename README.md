@@ -28,27 +28,27 @@ With **Viking Router v2**:
 
 ```mermaid
 graph TD
-    A[User Message / Event] --> B{Viking Router Detection}
+    A["User Message / Event"] --> B{"Viking Router Detection"}
     
-    B -->|HEARTBEAT| C[🔥 HEARTBEAT MODE]
-    C --> C1[API Calls: 0]
-    C --> C2[Tools: exec, status, cron]
-    C --> C3[Files: None]
+    B -->|HEARTBEAT| C["🔥 HEARTBEAT MODE"]
+    C --> C1["API Calls: 0"]
+    C --> C2["Tools: exec, status, cron"]
+    C --> C3["Files: None"]
     
-    B -->|Spawned by Main| D[🤖 SUBAGENT MODE]
-    D --> D1[API Calls: 1]
-    D --> D2[Tools: Filtered by task desc]
-    D --> D3[Files: memory.md only]
+    B -->|Spawned by Main| D["🤖 SUBAGENT MODE"]
+    D --> D1["API Calls: 1"]
+    D --> D2["Tools: Filtered by task desc"]
+    D --> D3["Files: memory.md only"]
     
-    B -->|System Cron| E[🕒 CRON MODE]
-    E --> E1[API Calls: 0]
-    E --> E2[Tools: ALL]
-    E --> E3[Files: memory.md only]
+    B -->|System Cron| E["🕒 CRON MODE"]
+    E --> E1["API Calls: 0"]
+    E --> E2["Tools: ALL"]
+    E --> E3["Files: memory.md only"]
     
-    B -->|Normal Chat| F[👤 USER MODE]
-    F --> F1[API Calls: 1]
-    F --> F2[Tools: Filtered by AI classification]
-    F --> F3[Files: Essential (SOUL, IDENTITY, MEMORY)]
+    B -->|Normal Chat| F["👤 USER MODE"]
+    F --> F1["API Calls: 1"]
+    F --> F2["Tools: Filtered by AI classification"]
+    F --> F3["Files: Essential (SOUL, IDENTITY, MEMORY)"]
 ```
 
 ## 📦 Installation
