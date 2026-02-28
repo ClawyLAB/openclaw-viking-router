@@ -1,0 +1,8 @@
+{
+    "enabled": true,
+    "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "modelId": "gemini-2.5-flash-lite",
+    "apiKey": "YOUR_API_KEY_HERE",
+    "maxTokens": 100,
+    "temp": 0
+}

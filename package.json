@@ -1,0 +1,22 @@
+{
+    "name": "openclaw-viking-router",
+    "version": "1.0.0",
+    "description": "Token-saving router for OpenClaw — LLM-powered tool & context filtering",
+    "main": "src/router.js",
+    "scripts": {
+        "install-patch": "node install.js",
+        "uninstall-patch": "node uninstall.js"
+    },
+    "keywords": [
+        "openclaw",
+        "token",
+        "router",
+        "optimization"
+    ],
+    "author": "",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": ""
+    }
+}
