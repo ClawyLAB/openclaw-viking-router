@@ -1,84 +1,93 @@
-# Viking Router
+# Viking Router for OpenClaw 🚀
 
-**Token-saving router for OpenClaw** — Uses a lightweight LLM to classify each message and dynamically filter tool schemas & context files, reducing token consumption by ~30-40%.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![OpenClaw Compatible](https://img.shields.io/badge/OpenClaw-Compatible-blue.svg)](https://github.com/chengazhen/cursor-auto-rules)
+[![Token Savings](https://img.shields.io/badge/Token_Savings-30%25_to_93%25-brightgreen.svg)]()
 
-Inspired by [OpenViking](https://github.com/volcengine/OpenViking)'s L0/L1/L2 layered context approach.
+> [Read in Chinese (中文文档)](./README_CN.md)
 
-## How It Works
+**A smart, token-saving router plugin for OpenClaw.** 
 
+Viking Router uses a lightweight LLM (like the free `gemini-2.5-flash-lite`) to classify every incoming message and dynamically filter the tools and context files injected into OpenClaw's prompt. 
+
+By only loading what's strictly necessary for each task, it dramatically reduces your primary LLM's token consumption and cost without sacrificing capabilities.
+
+Inspired by [OpenViking's](https://github.com/volcengine/OpenViking) L0/L1/L2 layered context paradigm.
+
+## ✨ Why You Need This
+
+Out of the box, OpenClaw injects **all 21+ tools** and **all workspace files** into its system prompt for *every* message, consuming roughly **~15k input tokens** just for a simple "Hello".
+
+With **Viking Router v2**:
+- 🗣️ **Casual Chat:** Irrelevant tools are stripped. Full schemas are replaced with lightweight one-line summaries. **(~65% savings)**
+- 💓 **Heartbeats:** Zero API routing calls. Instantly drops all context files and leaves only 3 essential tools. **(~93% savings)**
+- 🤖 **Subagents:** Routes tools based on the subagent's specific task description. Keeps only `memory.md`. **(~70% savings)**
+- 🕒 **Cron Tasks:** Bypasses routing to ensure scheduled tasks never break, but still filters heavy context files. 
+
+## 🧠 How It Works (Smart Routing Flow)
+
+```mermaid
+graph TD
+    A[User Message / Event] --> B{Viking Router Detection}
+    
+    B -->|HEARTBEAT| C[🔥 HEARTBEAT MODE]
+    C --> C1[API Calls: 0]
+    C --> C2[Tools: exec, status, cron]
+    C --> C3[Files: None]
+    
+    B -->|Spawned by Main| D[🤖 SUBAGENT MODE]
+    D --> D1[API Calls: 1]
+    D --> D2[Tools: Filtered by task desc]
+    D --> D3[Files: memory.md only]
+    
+    B -->|System Cron| E[🕒 CRON MODE]
+    E --> E1[API Calls: 0]
+    E --> E2[Tools: ALL]
+    E --> E3[Files: memory.md only]
+    
+    B -->|Normal Chat| F[👤 USER MODE]
+    F --> F1[API Calls: 1]
+    F --> F2[Tools: Filtered by AI classification]
+    F --> F3[Files: Essential (SOUL, IDENTITY, MEMORY)]
 ```
-User message → Viking Router → detect message type
-                                  ├─ Heartbeat → skip API, minimal tools (3), no files
-                                  ├─ Cron      → skip API, keep all tools, only memory.md
-                                  ├─ Subagent  → route by task, only memory.md
-                                  └─ User msg  → LLM routing, L0 summaries for unloaded tools
-```
 
-### v2 Smart Routing Table
+## 📦 Installation
 
-| Message Type | Detection | Tools | Files | API Calls |
-|-------------|-----------|-------|-------|-----------|
-| **Heartbeat** | prompt contains "HEARTBEAT" | exec, session_status, cron (3) | none | **0** |
-| **Cron** | sessionKey contains "cron" | all (avoid breaking tasks) | memory.md only | **0** |
-| **Subagent** | params.spawnedBy exists | LLM routes by task desc | memory.md only | 1 |
-| **User message** | default | LLM routes by content | filtered by packs | 1 |
-| **Slash command** | starts with `/` | all (bypass routing) | all | **0** |
-
-### Token Savings Breakdown
-
-| Scenario | Before | After | Saved |
-|----------|--------|-------|-------|
-| Casual chat | ~15k input | ~4-5k input | **~65%** |
-| Heartbeat | ~15k input | ~1k input | **~93%** |
-| Subagent | ~7k input | ~2k input | **~70%** |
-| Coding task | ~15k input | ~8k input | **~45%** |
-
-## Installation
-
-### 1. Clone into your OpenClaw directory
-
+### 1. Clone into your OpenClaw installation
+Run this from the root of your OpenClaw directory:
 ```bash
-cd /path/to/openclaw
-git clone https://github.com/your-name/openclaw-viking-router.git patches/viking-router
+git clone https://github.com/13579x/openclaw-viking-router.git patches/viking-router
 ```
 
-### 2. Create config file
-
+### 2. Configure your API Key
+Copy the example config:
 ```bash
 cp patches/viking-router/config/viking-config.example.json patches/viking-config.json
 ```
-
-Edit `patches/viking-config.json`:
-
+Edit `patches/viking-config.json` and add your routing model API key (We highly recommend Google's free `gemini-2.5-flash-lite`):
 ```json
 {
     "enabled": true,
     "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
     "modelId": "gemini-2.5-flash-lite",
-    "apiKey": "YOUR_API_KEY_HERE",
-    "maxTokens": 100,
-    "temp": 0
+    "apiKey": "YOUR_API_KEY_HERE"
 }
 ```
 
-#### Supported routing models
-
-| Model | Provider | Free | Speed |
-|-------|----------|------|-------|
-| `gemini-2.5-flash-lite` | Google AI Studio | ✅ | ~3s |
-| `gemini-2.0-flash-lite` | Google AI Studio | ✅ | ~2s |
-| `gpt-4o-mini` | OpenAI | ❌ | ~2s |
-| Any OpenAI-compatible | Any provider | varies | varies |
-
-### 3. Install (apply patch)
-
+### 3. Apply the patch
 ```bash
 node patches/viking-router/install.js
 ```
 
-### 4. Auto-patch after OpenClaw updates
+### 4. Restart OpenClaw
+Restart your OpenClaw gateway for the changes to take effect.
 
-Add to your root `package.json`:
+---
+
+## 🛡️ Future-Proofing (Auto-Patch)
+
+OpenClaw updates (`npm update`) will overwrite the core files, removing the Viking patch. 
+To ensure Viking Router reinstalls itself automatically, add a `postinstall` script to your OpenClaw `package.json`:
 
 ```json
 {
@@ -88,76 +97,37 @@ Add to your root `package.json`:
 }
 ```
 
-### 5. Restart gateway
+## 🔧 Supported Routing Models
 
-```bash
-openclaw gateway restart
-```
+We strongly suggest using a fast, free, or extremely cheap model for routing, as it adds a slight latency (1-3s) to user messages.
 
-## Verification
+| Model | Provider | Free Tier? | Speed |
+|-------|----------|------------|-------|
+| `gemini-2.5-flash-lite` | Google AI Studio | ✅ Yes! | ⚡ ~2-3s |
+| `gemini-2.0-flash` | Google AI Studio | ✅ Yes! | ⚡ ~2-3s |
+| `gpt-4o-mini` | OpenAI | ❌ No | ⚡ ~1-2s |
+| `deepseek-chat` | DeepSeek | ❌ No (but cheap) | ⏳ ~3-5s |
+| Any *OpenAI-Compatible* API | Local / Others | Varies | Varies |
 
-After restarting, send messages and check the logs:
+## ⚙️ Configuration File (`viking-config.json`)
 
-```
-# User message
-[viking] routing: model=gemini-2.5-flash-lite msg=你好
-[viking] route raw: {"packs": []}
-[viking] tools: 21 -> 7 (saved 14 schemas)
-[viking] files: 8 -> 3 (saved 5)
+| Field | Description |
+|-------|-------------|
+| `enabled` | Set to `false` to instantly bypass routing without uninstalling. |
+| `baseUrl` | Your OpenAI-compatible endpoint URL. |
+| `modelId` | The string identifier of the routing model. |
+| `apiKey` | Your authentication token. |
+| `maxTokens` | Max tokens for the routing model's JSON response (100 is plenty). |
+| `temp` | Temperature for routing model (0 is highly recommended for stable JSON). |
 
-# Heartbeat
-[viking] heartbeat detected — minimal mode
-[viking] heartbeat: tools 21 -> 3, files 8 -> 0
+*Note: You can also use environment variables (`VIKING_API_KEY`, `VIKING_MODEL`, `VIKING_BASE_URL`, `VIKING_ENABLED`) which will override the JSON config.*
 
-# Subagent
-[viking] subagent (from main) — routing by task
-[viking] subagent tools: 21 -> 6 packs=["base-ext"]
-[viking] subagent files: 8 -> 1 (only memory)
+## 🗑️ Uninstall
 
-# Cron
-[viking] cron task — skip routing, keep all tools
-[viking] cron files: 8 -> 1
-```
-
-## Configuration
-
-| Field | Default | Description |
-|-------|---------|-------------|
-| `enabled` | `true` | Enable/disable routing |
-| `baseUrl` | Google AI Studio | OpenAI-compatible API endpoint |
-| `modelId` | `gemini-2.5-flash-lite` | Routing model ID |
-| `apiKey` | - | API key for routing model |
-| `maxTokens` | `100` | Max tokens for routing response |
-| `temp` | `0` | Temperature for routing model |
-
-### Environment variable overrides
-
-```bash
-export VIKING_API_KEY=your_key
-export VIKING_MODEL=gemini-2.5-flash-lite
-export VIKING_BASE_URL=https://...
-export VIKING_ENABLED=true
-```
-
-## Tool Packs
-
-| Pack | Tools | Description |
-|------|-------|-------------|
-| *(core, always loaded)* | `read`, `exec`, `memory_search`, `memory_get`, `message`, `tts` | Basic operations |
-| `base-ext` | `write`, `edit`, `grep`, `find`, `ls`, `process` | File editing & search |
-| `web` | `web_search`, `web_fetch` | Web search & fetch |
-| `browser` | `browser` | Browser control |
-| `media` | `canvas`, `image` | Image generation |
-| `infra` | `cron`, `gateway`, `session_status` | System management |
-| `agents` | `agents_list`, `sessions_*`, `subagents` | Multi-agent |
-| `nodes` | `nodes` | Device control |
-
-## Uninstall
-
+If you ever need to completely remove the router and restore your original OpenClaw files:
 ```bash
 node patches/viking-router/uninstall.js
 ```
 
-## License
-
+## 📄 License
 MIT
