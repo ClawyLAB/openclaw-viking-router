@@ -12,6 +12,7 @@ const DEFAULT_CONFIG = {
     apiKey: "",
     maxTokens: 100,
     temp: 0,
+    preserveTools: [],
 };
 
 /**

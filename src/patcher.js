@@ -222,6 +222,11 @@ try {
                 }
               });
 
+              // Merge preserved tools from config
+              if (_vCfg.preserveTools && Array.isArray(_vCfg.preserveTools)) {
+                _vCfg.preserveTools.forEach(function(name) { _allowedTools.add(name.toLowerCase()); });
+              }
+
               var _origToolCount = tools.length;
               var _removedNames = [];
               var _filteredTools = tools.filter(function(t) {
